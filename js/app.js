@@ -54,7 +54,11 @@ searchForm.addEventListener('submit', async (e) => {
     currentLat = lat;
     currentLng = lng;
     map.setView([lat, lng], 17);
-    await searchPotholes(lat, lng);
+    try {
+      await searchPotholes(lat, lng);
+    } catch (err) {
+      showError('Unable to fetch data. Please try again in a moment.');
+    }
   } catch (err) {
     showError('Address not found. Try clicking the map instead.');
   } finally {
