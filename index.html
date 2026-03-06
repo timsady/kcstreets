@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KC Streets — Pothole Lookup</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="search-panel">
+      <h1>KC Streets</h1>
+      <p class="subtitle">Pothole Report Lookup</p>
+
+      <form id="search-form">
+        <label for="address-input">Search by address</label>
+        <div class="input-group">
+          <input type="text" id="address-input" placeholder="e.g. 31st &amp; Main, Kansas City, MO">
+          <button type="submit" id="search-btn">Search</button>
+        </div>
+      </form>
+
+      <div class="radius-control">
+        <label for="radius-slider">Search radius: <span id="radius-value">50</span> ft</label>
+        <input type="range" id="radius-slider" min="10" max="100" value="50" step="5">
+      </div>
+
+      <div id="summary" class="summary hidden">
+        <h2>Results Summary</h2>
+        <div id="summary-content"></div>
+      </div>
+    </aside>
+
+    <main>
+      <div id="map"></div>
+      <div id="results-panel" class="hidden">
+        <h2>Pothole Reports <span id="results-count"></span></h2>
+        <div class="table-wrapper">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th data-sort="open_date_time">Date</th>
+                <th data-sort="current_status">Status</th>
+                <th data-sort="incident_address">Address</th>
+                <th data-sort="days_to_close">Days to Close</th>
+                <th data-sort="report_source">Source</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
