@@ -468,31 +468,16 @@ document.getElementById('share-btn').addEventListener('click', async () => {
   const btn = document.getElementById('share-btn');
   const currentUrl = window.location.href;
 
-  btn.disabled = true;
-  btn.textContent = 'Generating link...';
-
-  try {
-    const response = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(currentUrl));
-    if (!response.ok) throw new Error('TinyURL API error');
-    const shortUrl = await response.text();
-
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(shortUrl);
+  if (navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(currentUrl);
       btn.textContent = 'Link copied!';
-    } else {
-      prompt('Share this link:', shortUrl);
-      btn.textContent = 'Share this view';
-    }
-  } catch {
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(currentUrl).catch(() => {});
-      btn.textContent = 'Full URL copied!';
-    } else {
+    } catch {
       prompt('Share this link:', currentUrl);
-      btn.textContent = 'Share this view';
     }
+  } else {
+    prompt('Share this link:', currentUrl);
   }
 
-  btn.disabled = false;
   setTimeout(() => { btn.textContent = 'Share this view'; }, 3000);
 });
