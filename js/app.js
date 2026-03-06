@@ -1,3 +1,19 @@
+'use strict';
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+function isRecordOpen(record) {
+  return record.current_status?.toLowerCase() !== 'resolved';
+}
+
+function formatDaysToClose(val) {
+  return val != null && val !== '' ? val : 'N/A';
+}
+
 // --- Map Setup ---
 const map = L.map('map').setView([39.0997, -94.5786], 13); // Kansas City center
 
@@ -154,9 +170,9 @@ function displayResults(lat, lng, radiusFt, records) {
   // Add markers
   records.forEach(r => {
     if (!r.latitude || !r.longitude) return;
-    const isOpen = r.current_status !== 'resolved';
-    const color = isOpen ? '#dc3545' : '#198754';
-    const statusText = isOpen ? 'Open' : 'Resolved';
+    const open = isRecordOpen(r);
+    const color = open ? '#dc3545' : '#198754';
+    const statusText = open ? 'Open' : 'Resolved';
 
     const marker = L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], {
       radius: 7,
@@ -174,9 +190,9 @@ function displayResults(lat, lng, radiusFt, records) {
       <strong>Status:</strong> ${statusText}<br>
       <strong>Opened:</strong> ${openDate}<br>
       <strong>Resolved:</strong> ${resolvedDate}<br>
-      <strong>Address:</strong> ${r.incident_address || 'N/A'}<br>
-      <strong>Days to close:</strong> ${r.days_to_close || 'N/A'}<br>
-      <strong>Source:</strong> ${r.report_source || 'N/A'}
+      <strong>Address:</strong> ${escapeHtml(r.incident_address || 'N/A')}<br>
+      <strong>Days to close:</strong> ${formatDaysToClose(r.days_to_close)}<br>
+      <strong>Source:</strong> ${escapeHtml(r.report_source || 'N/A')}
     `);
   });
 
@@ -193,7 +209,7 @@ function renderSummary(records) {
   summary.classList.remove('hidden');
 
   const total = records.length;
-  const open = records.filter(r => r.current_status !== 'resolved').length;
+  const open = records.filter(r => isRecordOpen(r)).length;
   const resolved = total - open;
 
   const dates = records
@@ -273,15 +289,15 @@ function sortAndRenderRows() {
 
   tbody.innerHTML = sorted.map(r => {
     const date = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
-    const isOpen = r.current_status !== 'resolved';
-    const statusClass = isOpen ? 'status-open' : 'status-resolved';
-    const statusText = isOpen ? 'Open' : 'Resolved';
+    const open = isRecordOpen(r);
+    const statusClass = open ? 'status-open' : 'status-resolved';
+    const statusText = open ? 'Open' : 'Resolved';
     return `<tr>
       <td>${date}</td>
       <td><span class="${statusClass}">${statusText}</span></td>
-      <td>${r.incident_address || 'N/A'}</td>
-      <td>${r.days_to_close || 'N/A'}</td>
-      <td>${r.report_source || 'N/A'}</td>
+      <td>${escapeHtml(r.incident_address || 'N/A')}</td>
+      <td>${formatDaysToClose(r.days_to_close)}</td>
+      <td>${escapeHtml(r.report_source || 'N/A')}</td>
     </tr>`;
   }).join('');
 
