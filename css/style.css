@@ -1,6 +1,24 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :focus-visible { outline: 2px solid #0d6efd; outline-offset: 2px; }
 
+/* Site navigation */
+#site-nav {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+  background: #212529;
+}
+.nav-link {
+  color: #adb5bd;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.nav-link:hover { color: #fff; background: #343a40; }
+.nav-link.active { color: #fff; background: #0d6efd; }
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #1a1a1a;
@@ -8,7 +26,7 @@ body {
 
 #app {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 42px);
 }
 
 #search-panel {
