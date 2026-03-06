@@ -176,10 +176,53 @@ function displayResults(lat, lng, radiusFt, records) {
     `);
   });
 
-  // Summary and table will be implemented in Tasks 5 & 6
-  // For now, just show count
+  // Summary
+  renderSummary(records);
+}
+
+function renderSummary(records) {
   const summary = document.getElementById('summary');
   const content = document.getElementById('summary-content');
   summary.classList.remove('hidden');
-  content.innerHTML = `<p>Found ${records.length} pothole report(s).</p>`;
+
+  const total = records.length;
+  const open = records.filter(r => r.current_status !== 'resolved').length;
+  const resolved = total - open;
+
+  const dates = records
+    .map(r => r.open_date_time ? new Date(r.open_date_time) : null)
+    .filter(Boolean)
+    .sort((a, b) => a - b);
+
+  const firstReported = dates.length > 0 ? dates[0].toLocaleDateString() : 'N/A';
+  const lastReported = dates.length > 0 ? dates[dates.length - 1].toLocaleDateString() : 'N/A';
+
+  const daysToClose = records
+    .map(r => parseInt(r.days_to_close))
+    .filter(d => !isNaN(d));
+  const avgDays = daysToClose.length > 0
+    ? Math.round(daysToClose.reduce((a, b) => a + b, 0) / daysToClose.length)
+    : 'N/A';
+
+  content.innerHTML = `
+    <div class="summary-grid">
+      <div class="stat">
+        <span class="stat-value">${total}</span>
+        <span class="stat-label">Total Reports</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value status-open">${open}</span>
+        <span class="stat-label">Open</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value status-resolved">${resolved}</span>
+        <span class="stat-label">Resolved</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">${avgDays}</span>
+        <span class="stat-label">Avg Days to Close</span>
+      </div>
+    </div>
+    <p class="date-range">First reported: ${firstReported}<br>Last reported: ${lastReported}</p>
+  `;
 }
