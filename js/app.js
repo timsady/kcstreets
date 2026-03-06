@@ -217,8 +217,13 @@ function displayResults(lat, lng, radiusFt, records) {
     const extra = parseAdditionalQuestions(r.additional_questions);
 
     const daysLabel = open ? 'Days open' : 'Days to close';
+    const ticketId = r.reported_issue || 'N/A';
+    const ticketLink = r.reported_issue
+      ? `<a href="https://data.kcmo.org/resource/d4px-6rwg.json?reported_issue=${r.reported_issue}" target="_blank">${escapeHtml(ticketId)}</a>`
+      : 'N/A';
     let popupHtml = `
       <strong>Pothole Report</strong><br>
+      <strong>Ticket:</strong> ${ticketLink}<br>
       <strong>Status:</strong> ${statusText}<br>
       <strong>Opened:</strong> ${openDate}<br>
       <strong>Resolved:</strong> ${resolvedDate}<br>
@@ -330,7 +335,11 @@ function sortAndRenderRows() {
     const statusText = open ? 'Open' : 'Resolved';
     const origIdx = currentRecords.indexOf(r);
     const details = r.issue_sub_type ? escapeHtml(r.issue_sub_type) : '';
+    const ticket = r.reported_issue
+      ? `<a href="https://data.kcmo.org/resource/d4px-6rwg.json?reported_issue=${r.reported_issue}" target="_blank">${escapeHtml(r.reported_issue)}</a>`
+      : 'N/A';
     return `<tr data-idx="${origIdx}">
+      <td>${ticket}</td>
       <td>${date}</td>
       <td><span class="${statusClass}">${statusText}</span></td>
       <td>${escapeHtml(r.incident_address || 'N/A')}</td>

@@ -28,6 +28,11 @@ function addressLink(r) {
   return addr;
 }
 
+function ticketLink(r) {
+  if (!r.reported_issue) return 'N/A';
+  return `<a href="https://data.kcmo.org/resource/d4px-6rwg.json?reported_issue=${r.reported_issue}" target="_blank">${escapeHtml(r.reported_issue)}</a>`;
+}
+
 function daysBetween(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
@@ -78,6 +83,7 @@ fetchAndRender(openParams.toString(), 'open-table', 'open-loading', 'open-error'
 
   return `<tr>
     <td>${rank}</td>
+    <td>${ticketLink(r)}</td>
     <td>${addressLink(r)}</td>
     <td class="days-cell">${daysOpen}</td>
     <td>${date}</td>
@@ -103,6 +109,7 @@ fetchAndRender(resolvedParams.toString(), 'resolved-table', 'resolved-loading', 
 
   return `<tr>
     <td>${rank}</td>
+    <td>${ticketLink(r)}</td>
     <td>${addressLink(r)}</td>
     <td class="days-cell">${r.days_to_close || 'N/A'}</td>
     <td>${openDate}</td>
