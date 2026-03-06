@@ -330,14 +330,14 @@ function sortAndRenderRows() {
     </tr>`;
   }).join('');
 
-  // Row click → highlight on map
+  // Row hover → highlight on map (no re-center)
   tbody.querySelectorAll('tr').forEach(tr => {
-    tr.addEventListener('click', (e) => {
-      if (e.target.classList.contains('recenter-link')) return;
+    tr.addEventListener('mouseenter', () => {
       const idx = parseInt(tr.dataset.idx);
-      highlightRecord(idx);
-      tbody.querySelectorAll('tr').forEach(r => r.classList.remove('row-selected'));
-      tr.classList.add('row-selected');
+      highlightMarker(idx);
+    });
+    tr.addEventListener('mouseleave', () => {
+      highlightLayer.clearLayers();
     });
   });
 
@@ -372,7 +372,7 @@ function sortAndRenderRows() {
   });
 }
 
-function highlightRecord(idx) {
+function highlightMarker(idx) {
   highlightLayer.clearLayers();
   const r = currentRecords[idx];
   if (!r || !r.latitude || !r.longitude) return;
@@ -386,10 +386,6 @@ function highlightRecord(idx) {
     fillOpacity: 0.25,
     weight: 3
   }).addTo(highlightLayer);
-
-  map.setView([lat, lng], Math.max(map.getZoom(), 17));
-  const marker = markersByIndex[idx];
-  if (marker) marker.openPopup();
 }
 
 // Column header click sorting
