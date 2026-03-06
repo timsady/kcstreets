@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kansas City's most neglected potholes — longest open and slowest to resolve 311 reports.">
+  <title>KC Streets — Hall of Fame</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav id="site-nav">
+    <a href="index.html" class="nav-link">Pothole Lookup</a>
+    <a href="hall-of-fame.html" class="nav-link active">Hall of Fame</a>
+  </nav>
+
+  <div id="hof-page">
+    <header class="hof-header">
+      <h1>Pothole Hall of Fame</h1>
+      <p class="subtitle">Kansas City's most neglected potholes, ranked by the data.</p>
+    </header>
+
+    <section class="hof-section">
+      <h2>Still Waiting — Longest Currently Open</h2>
+      <p class="section-desc">Open pothole reports that haven't been resolved yet, ranked by how long they've been waiting.</p>
+      <div id="open-loading" class="loading">Loading...</div>
+      <div id="open-error" class="error-message hidden"></div>
+      <div class="table-wrapper">
+        <table id="open-table" class="hof-table hidden">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Address</th>
+              <th>Days Open</th>
+              <th>Date Reported</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="hof-section">
+      <h2>Hall of Shame — Slowest Ever Resolved</h2>
+      <p class="section-desc">Resolved pothole reports that took the longest to close.</p>
+      <div id="resolved-loading" class="loading">Loading...</div>
+      <div id="resolved-error" class="error-message hidden"></div>
+      <div class="table-wrapper">
+        <table id="resolved-table" class="hof-table hidden">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Address</th>
+              <th>Days to Close</th>
+              <th>Date Reported</th>
+              <th>Date Resolved</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/hall-of-fame.js"></script>
+</body>
+</html>

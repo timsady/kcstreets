@@ -139,3 +139,26 @@ h1 { font-size: 1.5rem; margin-bottom: 2px; }
 
 #results-table th.sort-asc::after { content: ' ▲'; font-size: 0.7rem; }
 #results-table th.sort-desc::after { content: ' ▼'; font-size: 0.7rem; }
+
+/* Hall of Fame page */
+#hof-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+.hof-header { margin-bottom: 32px; }
+.hof-header h1 { font-size: 1.8rem; margin-bottom: 4px; }
+.hof-section { margin-bottom: 40px; }
+.hof-section h2 { font-size: 1.2rem; margin-bottom: 4px; }
+.section-desc { color: #666; font-size: 0.85rem; margin-bottom: 16px; }
+.hof-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.hof-table th {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 2px solid #dee2e6;
+  white-space: nowrap;
+}
+.hof-table td { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+.hof-table tr:hover { background: #f8f9fa; }
+.days-cell { font-weight: 700; }
+.loading { color: #666; font-style: italic; padding: 16px 0; }
