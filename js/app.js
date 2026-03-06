@@ -401,3 +401,19 @@ document.querySelectorAll('#results-table th[data-sort]').forEach(th => {
     sortAndRenderRows();
   });
 });
+
+// --- Auto-search from URL params ---
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const lat = parseFloat(params.get('lat'));
+  const lng = parseFloat(params.get('lng'));
+  if (!isNaN(lat) && !isNaN(lng)) {
+    currentLat = lat;
+    currentLng = lng;
+    map.setView([lat, lng], 17);
+    setLoading(true);
+    searchPotholes(lat, lng)
+      .catch(() => showError('Unable to fetch data. Please try again in a moment.'))
+      .finally(() => setLoading(false));
+  }
+})();

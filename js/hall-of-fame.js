@@ -20,6 +20,14 @@ function parseAdditionalQuestions(raw) {
   }
 }
 
+function addressLink(r) {
+  const addr = escapeHtml(r.incident_address || 'N/A');
+  if (r.latitude && r.longitude) {
+    return `<a href="index.html?lat=${r.latitude}&lng=${r.longitude}" class="address-link">${addr}</a>`;
+  }
+  return addr;
+}
+
 function daysBetween(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
@@ -57,7 +65,7 @@ const openParams = new URLSearchParams({
   '$where': "issue_type='A Pothole' AND current_status='received'",
   '$order': 'open_date_time ASC',
   '$limit': '50',
-  '$select': 'reported_issue,open_date_time,incident_address,issue_sub_type,additional_questions'
+  '$select': 'reported_issue,open_date_time,incident_address,latitude,longitude,issue_sub_type,additional_questions'
 });
 
 fetchAndRender(openParams.toString(), 'open-table', 'open-loading', 'open-error', (r, rank) => {
@@ -70,7 +78,7 @@ fetchAndRender(openParams.toString(), 'open-table', 'open-loading', 'open-error'
 
   return `<tr>
     <td>${rank}</td>
-    <td>${escapeHtml(r.incident_address || 'N/A')}</td>
+    <td>${addressLink(r)}</td>
     <td class="days-cell">${daysOpen}</td>
     <td>${date}</td>
     <td>${escapeHtml(details)}</td>
@@ -82,7 +90,7 @@ const resolvedParams = new URLSearchParams({
   '$where': "issue_type='A Pothole' AND current_status='resolved'",
   '$order': 'days_to_close DESC',
   '$limit': '50',
-  '$select': 'reported_issue,open_date_time,resolved_date,days_to_close,incident_address,issue_sub_type,additional_questions'
+  '$select': 'reported_issue,open_date_time,resolved_date,days_to_close,incident_address,latitude,longitude,issue_sub_type,additional_questions'
 });
 
 fetchAndRender(resolvedParams.toString(), 'resolved-table', 'resolved-loading', 'resolved-error', (r, rank) => {
@@ -95,7 +103,7 @@ fetchAndRender(resolvedParams.toString(), 'resolved-table', 'resolved-loading', 
 
   return `<tr>
     <td>${rank}</td>
-    <td>${escapeHtml(r.incident_address || 'N/A')}</td>
+    <td>${addressLink(r)}</td>
     <td class="days-cell">${r.days_to_close || 'N/A'}</td>
     <td>${openDate}</td>
     <td>${resolvedDate}</td>
