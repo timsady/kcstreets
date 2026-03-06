@@ -37,6 +37,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Layer groups for markers and radius circle
 const markersLayer = L.layerGroup().addTo(map);
 const radiusLayer = L.layerGroup().addTo(map);
+const highlightLayer = L.layerGroup().addTo(map);
+const markersByIndex = [];
 
 // --- State ---
 let currentLat = null;
@@ -155,6 +157,7 @@ function displayResults(lat, lng, radiusFt, records) {
   // Clear previous
   markersLayer.clearLayers();
   radiusLayer.clearLayers();
+  highlightLayer.clearLayers();
 
   // Draw radius circle
   L.circle([lat, lng], {
@@ -180,8 +183,12 @@ function displayResults(lat, lng, radiusFt, records) {
   }
 
   // Add markers
+  markersByIndex.length = 0;
   records.forEach((r, i) => {
-    if (!r.latitude || !r.longitude) return;
+    if (!r.latitude || !r.longitude) {
+      markersByIndex.push(null);
+      return;
+    }
     const open = isRecordOpen(r);
     const color = open ? '#dc3545' : '#198754';
     const statusText = open ? 'Open' : 'Resolved';
@@ -211,6 +218,7 @@ function displayResults(lat, lng, radiusFt, records) {
     if (extra) popupHtml += `<br>${extra}`;
 
     marker.bindPopup(popupHtml);
+    markersByIndex.push(marker);
   });
 
   // Summary
@@ -318,13 +326,27 @@ function sortAndRenderRows() {
       <td>${formatDaysToClose(r.days_to_close)}</td>
       <td>${escapeHtml(r.report_source || 'N/A')}</td>
       <td>${details}</td>
+      <td><a href="#" class="recenter-link" data-idx="${origIdx}">re-center</a></td>
     </tr>`;
   }).join('');
 
-  // Row click → re-search centered on that pothole
+  // Row click → highlight on map
   tbody.querySelectorAll('tr').forEach(tr => {
-    tr.addEventListener('click', async () => {
+    tr.addEventListener('click', (e) => {
+      if (e.target.classList.contains('recenter-link')) return;
       const idx = parseInt(tr.dataset.idx);
+      highlightRecord(idx);
+      tbody.querySelectorAll('tr').forEach(r => r.classList.remove('row-selected'));
+      tr.classList.add('row-selected');
+    });
+  });
+
+  // Re-center link → re-search from that pothole's location
+  tbody.querySelectorAll('.recenter-link').forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const idx = parseInt(link.dataset.idx);
       const r = currentRecords[idx];
       if (!r || !r.latitude || !r.longitude) return;
       currentLat = parseFloat(r.latitude);
@@ -348,6 +370,26 @@ function sortAndRenderRows() {
       th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
     }
   });
+}
+
+function highlightRecord(idx) {
+  highlightLayer.clearLayers();
+  const r = currentRecords[idx];
+  if (!r || !r.latitude || !r.longitude) return;
+  const lat = parseFloat(r.latitude);
+  const lng = parseFloat(r.longitude);
+
+  L.circle([lat, lng], {
+    radius: 8,
+    color: '#ffc107',
+    fillColor: '#ffc107',
+    fillOpacity: 0.25,
+    weight: 3
+  }).addTo(highlightLayer);
+
+  map.setView([lat, lng], Math.max(map.getZoom(), 17));
+  const marker = markersByIndex[idx];
+  if (marker) marker.openPopup();
 }
 
 // Column header click sorting
