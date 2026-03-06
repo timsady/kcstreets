@@ -14,6 +14,18 @@ function formatDaysToClose(val) {
   return val != null && val !== '' ? val : 'N/A';
 }
 
+function parseAdditionalQuestions(raw) {
+  if (!raw) return '';
+  try {
+    const obj = JSON.parse(raw);
+    return Object.entries(obj)
+      .map(([k, v]) => `<strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}`)
+      .join('<br>');
+  } catch {
+    return escapeHtml(raw);
+  }
+}
+
 // --- Map Setup ---
 const map = L.map('map').setView([39.0997, -94.5786], 13); // Kansas City center
 
@@ -25,6 +37,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Layer groups for markers and radius circle
 const markersLayer = L.layerGroup().addTo(map);
 const radiusLayer = L.layerGroup().addTo(map);
+const highlightLayer = L.layerGroup().addTo(map);
+const markersByIndex = [];
 
 // --- State ---
 let currentLat = null;
@@ -143,6 +157,7 @@ function displayResults(lat, lng, radiusFt, records) {
   // Clear previous
   markersLayer.clearLayers();
   radiusLayer.clearLayers();
+  highlightLayer.clearLayers();
 
   // Draw radius circle
   L.circle([lat, lng], {
@@ -168,8 +183,12 @@ function displayResults(lat, lng, radiusFt, records) {
   }
 
   // Add markers
-  records.forEach(r => {
-    if (!r.latitude || !r.longitude) return;
+  markersByIndex.length = 0;
+  records.forEach((r, i) => {
+    if (!r.latitude || !r.longitude) {
+      markersByIndex.push(null);
+      return;
+    }
     const open = isRecordOpen(r);
     const color = open ? '#dc3545' : '#198754';
     const statusText = open ? 'Open' : 'Resolved';
@@ -184,16 +203,22 @@ function displayResults(lat, lng, radiusFt, records) {
 
     const openDate = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
     const resolvedDate = r.resolved_date ? new Date(r.resolved_date).toLocaleDateString() : 'N/A';
+    const subType = r.issue_sub_type ? escapeHtml(r.issue_sub_type) : '';
+    const extra = parseAdditionalQuestions(r.additional_questions);
 
-    marker.bindPopup(`
+    let popupHtml = `
       <strong>Pothole Report</strong><br>
       <strong>Status:</strong> ${statusText}<br>
       <strong>Opened:</strong> ${openDate}<br>
       <strong>Resolved:</strong> ${resolvedDate}<br>
       <strong>Address:</strong> ${escapeHtml(r.incident_address || 'N/A')}<br>
       <strong>Days to close:</strong> ${formatDaysToClose(r.days_to_close)}<br>
-      <strong>Source:</strong> ${escapeHtml(r.report_source || 'N/A')}
-    `);
+      <strong>Source:</strong> ${escapeHtml(r.report_source || 'N/A')}`;
+    if (subType) popupHtml += `<br><strong>Type:</strong> ${subType}`;
+    if (extra) popupHtml += `<br>${extra}`;
+
+    marker.bindPopup(popupHtml);
+    markersByIndex.push(marker);
   });
 
   // Summary
@@ -287,19 +312,33 @@ function sortAndRenderRows() {
     return 0;
   });
 
-  tbody.innerHTML = sorted.map(r => {
+  tbody.innerHTML = sorted.map((r, sortedIdx) => {
     const date = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
     const open = isRecordOpen(r);
     const statusClass = open ? 'status-open' : 'status-resolved';
     const statusText = open ? 'Open' : 'Resolved';
-    return `<tr>
+    const origIdx = currentRecords.indexOf(r);
+    const details = r.issue_sub_type ? escapeHtml(r.issue_sub_type) : '';
+    return `<tr data-idx="${origIdx}">
       <td>${date}</td>
       <td><span class="${statusClass}">${statusText}</span></td>
       <td>${escapeHtml(r.incident_address || 'N/A')}</td>
       <td>${formatDaysToClose(r.days_to_close)}</td>
       <td>${escapeHtml(r.report_source || 'N/A')}</td>
+      <td>${details}</td>
     </tr>`;
   }).join('');
+
+  // Row click → highlight on map
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const idx = parseInt(tr.dataset.idx);
+      highlightRecord(idx);
+      // Highlight row visually
+      tbody.querySelectorAll('tr').forEach(r => r.classList.remove('row-selected'));
+      tr.classList.add('row-selected');
+    });
+  });
 
   // Update sort indicators
   document.querySelectorAll('#results-table th').forEach(th => {
@@ -308,6 +347,28 @@ function sortAndRenderRows() {
       th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
     }
   });
+}
+
+function highlightRecord(idx) {
+  highlightLayer.clearLayers();
+  const r = currentRecords[idx];
+  if (!r || !r.latitude || !r.longitude) return;
+  const lat = parseFloat(r.latitude);
+  const lng = parseFloat(r.longitude);
+
+  // Highlight circle around the pothole
+  L.circle([lat, lng], {
+    radius: 8,
+    color: '#ffc107',
+    fillColor: '#ffc107',
+    fillOpacity: 0.25,
+    weight: 3
+  }).addTo(highlightLayer);
+
+  // Pan map to the marker and open its popup
+  map.setView([lat, lng], Math.max(map.getZoom(), 17));
+  const marker = markersByIndex[idx];
+  if (marker) marker.openPopup();
 }
 
 // Column header click sorting
