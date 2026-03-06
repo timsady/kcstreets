@@ -14,6 +14,16 @@ function formatDaysToClose(val) {
   return val != null && val !== '' ? val : 'N/A';
 }
 
+function daysOpenOrClosed(record) {
+  if (record.days_to_close != null && record.days_to_close !== '') {
+    return record.days_to_close;
+  }
+  if (record.open_date_time) {
+    return Math.floor((Date.now() - new Date(record.open_date_time).getTime()) / 86400000);
+  }
+  return 'N/A';
+}
+
 function parseAdditionalQuestions(raw) {
   if (!raw) return '';
   try {
@@ -206,13 +216,14 @@ function displayResults(lat, lng, radiusFt, records) {
     const subType = r.issue_sub_type ? escapeHtml(r.issue_sub_type) : '';
     const extra = parseAdditionalQuestions(r.additional_questions);
 
+    const daysLabel = open ? 'Days open' : 'Days to close';
     let popupHtml = `
       <strong>Pothole Report</strong><br>
       <strong>Status:</strong> ${statusText}<br>
       <strong>Opened:</strong> ${openDate}<br>
       <strong>Resolved:</strong> ${resolvedDate}<br>
       <strong>Address:</strong> ${escapeHtml(r.incident_address || 'N/A')}<br>
-      <strong>Days to close:</strong> ${formatDaysToClose(r.days_to_close)}<br>
+      <strong>${daysLabel}:</strong> ${daysOpenOrClosed(r)}<br>
       <strong>Source:</strong> ${escapeHtml(r.report_source || 'N/A')}`;
     if (subType) popupHtml += `<br><strong>Type:</strong> ${subType}`;
     if (extra) popupHtml += `<br>${extra}`;
@@ -323,7 +334,7 @@ function sortAndRenderRows() {
       <td>${date}</td>
       <td><span class="${statusClass}">${statusText}</span></td>
       <td>${escapeHtml(r.incident_address || 'N/A')}</td>
-      <td>${formatDaysToClose(r.days_to_close)}</td>
+      <td>${daysOpenOrClosed(r)}</td>
       <td>${escapeHtml(r.report_source || 'N/A')}</td>
       <td>${details}</td>
       <td><a href="#" class="recenter-link" data-idx="${origIdx}">re-center</a></td>
