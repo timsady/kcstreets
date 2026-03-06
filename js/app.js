@@ -178,6 +178,9 @@ function displayResults(lat, lng, radiusFt, records) {
 
   // Summary
   renderSummary(records);
+
+  // Table
+  renderTable(records);
 }
 
 function renderSummary(records) {
@@ -226,3 +229,77 @@ function renderSummary(records) {
     <p class="date-range">First reported: ${firstReported}<br>Last reported: ${lastReported}</p>
   `;
 }
+
+let currentRecords = [];
+let sortColumn = 'open_date_time';
+let sortAsc = false;
+
+function renderTable(records) {
+  currentRecords = records;
+  const panel = document.getElementById('results-panel');
+  const count = document.getElementById('results-count');
+
+  panel.classList.remove('hidden');
+  count.textContent = `(${records.length})`;
+
+  sortAndRenderRows();
+}
+
+function sortAndRenderRows() {
+  const tbody = document.querySelector('#results-table tbody');
+  const sorted = [...currentRecords].sort((a, b) => {
+    let valA = a[sortColumn] || '';
+    let valB = b[sortColumn] || '';
+
+    if (sortColumn === 'days_to_close') {
+      valA = parseInt(valA) || 0;
+      valB = parseInt(valB) || 0;
+    } else if (sortColumn === 'open_date_time') {
+      valA = new Date(valA || 0).getTime();
+      valB = new Date(valB || 0).getTime();
+    } else {
+      valA = valA.toString().toLowerCase();
+      valB = valB.toString().toLowerCase();
+    }
+
+    if (valA < valB) return sortAsc ? -1 : 1;
+    if (valA > valB) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  tbody.innerHTML = sorted.map(r => {
+    const date = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
+    const isOpen = r.current_status !== 'resolved';
+    const statusClass = isOpen ? 'status-open' : 'status-resolved';
+    const statusText = isOpen ? 'Open' : 'Resolved';
+    return `<tr>
+      <td>${date}</td>
+      <td><span class="${statusClass}">${statusText}</span></td>
+      <td>${r.incident_address || 'N/A'}</td>
+      <td>${r.days_to_close || 'N/A'}</td>
+      <td>${r.report_source || 'N/A'}</td>
+    </tr>`;
+  }).join('');
+
+  // Update sort indicators
+  document.querySelectorAll('#results-table th').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === sortColumn) {
+      th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+    }
+  });
+}
+
+// Column header click sorting
+document.querySelectorAll('#results-table th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.sort;
+    if (sortColumn === col) {
+      sortAsc = !sortAsc;
+    } else {
+      sortColumn = col;
+      sortAsc = true;
+    }
+    sortAndRenderRows();
+  });
+});

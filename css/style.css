@@ -107,3 +107,6 @@ h1 { font-size: 1.5rem; margin-bottom: 2px; }
 .stat-value { display: block; font-size: 1.5rem; font-weight: 700; }
 .stat-label { display: block; font-size: 0.75rem; color: #666; text-transform: uppercase; }
 .date-range { font-size: 0.8rem; color: #555; line-height: 1.5; }
+
+#results-table th.sort-asc::after { content: ' ▲'; font-size: 0.7rem; }
+#results-table th.sort-desc::after { content: ' ▼'; font-size: 0.7rem; }
