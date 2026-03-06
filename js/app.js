@@ -54,6 +54,17 @@ const markersByIndex = [];
 let currentLat = null;
 let currentLng = null;
 
+// --- URL state management ---
+function updateUrl() {
+  if (currentLat == null || currentLng == null) return;
+  const params = new URLSearchParams();
+  params.set('lat', currentLat.toFixed(6));
+  params.set('lng', currentLng.toFixed(6));
+  params.set('zoom', map.getZoom());
+  params.set('radius', radiusSlider.value);
+  history.replaceState(null, '', '?' + params.toString());
+}
+
 // --- Radius slider ---
 const radiusSlider = document.getElementById('radius-slider');
 const radiusValue = document.getElementById('radius-value');
@@ -64,7 +75,11 @@ radiusSlider.addEventListener('change', () => {
   if (currentLat && currentLng) {
     searchPotholes(currentLat, currentLng);
   }
+  updateUrl();
 });
+
+// Update URL when map is panned/zoomed
+map.on('moveend', () => { updateUrl(); });
 
 // --- Geocoding ---
 async function geocodeAddress(address) {
@@ -99,6 +114,7 @@ searchForm.addEventListener('submit', async (e) => {
     } catch (err) {
       showError('Unable to fetch data. Please try again in a moment.');
     }
+    updateUrl();
   } catch (err) {
     showError('Address not found. Try clicking the map instead.');
   } finally {
@@ -118,6 +134,7 @@ map.on('click', async (e) => {
     showError('Unable to fetch data. Please try again in a moment.');
   } finally {
     setLoading(false);
+    updateUrl();
   }
 });
 
@@ -427,13 +444,55 @@ document.querySelectorAll('#results-table th[data-sort]').forEach(th => {
   const params = new URLSearchParams(window.location.search);
   const lat = parseFloat(params.get('lat'));
   const lng = parseFloat(params.get('lng'));
+  const zoom = parseInt(params.get('zoom'));
+  const radius = parseInt(params.get('radius'));
+
+  if (radius && radius >= 10 && radius <= 500) {
+    radiusSlider.value = radius;
+    radiusValue.textContent = radius;
+  }
+
   if (!isNaN(lat) && !isNaN(lng)) {
     currentLat = lat;
     currentLng = lng;
-    map.setView([lat, lng], 17);
+    map.setView([lat, lng], !isNaN(zoom) ? zoom : 17);
     setLoading(true);
     searchPotholes(lat, lng)
       .catch(() => showError('Unable to fetch data. Please try again in a moment.'))
       .finally(() => setLoading(false));
   }
 })();
+
+// --- Share button ---
+document.getElementById('share-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('share-btn');
+  const currentUrl = window.location.href;
+
+  btn.disabled = true;
+  btn.textContent = 'Generating link...';
+
+  try {
+    const response = await fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(currentUrl));
+    if (!response.ok) throw new Error('TinyURL API error');
+    const shortUrl = await response.text();
+
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shortUrl);
+      btn.textContent = 'Link copied!';
+    } else {
+      prompt('Share this link:', shortUrl);
+      btn.textContent = 'Share this view';
+    }
+  } catch {
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(currentUrl).catch(() => {});
+      btn.textContent = 'Full URL copied!';
+    } else {
+      prompt('Share this link:', currentUrl);
+      btn.textContent = 'Share this view';
+    }
+  }
+
+  btn.disabled = false;
+  setTimeout(() => { btn.textContent = 'Share this view'; }, 3000);
+});

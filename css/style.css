@@ -80,6 +80,23 @@ h1 { font-size: 1.5rem; margin-bottom: 2px; }
 .radius-control label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.85rem; }
 #radius-slider { width: 100%; }
 
+/* Share button */
+.share-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.share-btn:hover { background: #5a6268; }
+.share-btn:disabled { opacity: 0.7; cursor: wait; }
+
 /* Legend */
 .legend { margin-bottom: 20px; }
 .legend h2 { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
