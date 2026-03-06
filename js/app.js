@@ -15,13 +15,13 @@ function formatDaysToClose(val) {
 }
 
 function daysOpenOrClosed(record) {
-  if (record.days_to_close != null && record.days_to_close !== '') {
-    return record.days_to_close;
+  if (isRecordOpen(record)) {
+    if (record.open_date_time) {
+      return Math.floor((Date.now() - new Date(record.open_date_time).getTime()) / 86400000);
+    }
+    return 'N/A';
   }
-  if (record.open_date_time) {
-    return Math.floor((Date.now() - new Date(record.open_date_time).getTime()) / 86400000);
-  }
-  return 'N/A';
+  return record.days_to_close != null && record.days_to_close !== '' ? record.days_to_close : 'N/A';
 }
 
 function parseAdditionalQuestions(raw) {
