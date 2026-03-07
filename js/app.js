@@ -266,6 +266,12 @@ function displayResults(lat, lng, radiusFt, records) {
 
   // Table
   renderTable(records);
+
+  // Adjust center for table covering bottom of map
+  const panel = document.getElementById('results-panel');
+  if (!panel.classList.contains('hidden')) {
+    map.panBy([0, panel.offsetHeight / 2], { animate: false });
+  }
 }
 
 function renderSummary(records) {
