@@ -56,10 +56,10 @@ let currentLng = null;
 
 // --- URL state management ---
 function updateUrl() {
-  if (currentLat == null || currentLng == null) return;
+  const center = map.getCenter();
   const params = new URLSearchParams();
-  params.set('lat', currentLat.toFixed(6));
-  params.set('lng', currentLng.toFixed(6));
+  params.set('lat', center.lat.toFixed(6));
+  params.set('lng', center.lng.toFixed(6));
   params.set('zoom', map.getZoom());
   params.set('radius', radiusSlider.value);
   history.replaceState(null, '', '?' + params.toString());
