@@ -332,7 +332,7 @@ function sortAndRenderRows() {
     if (sortColumn === 'days_to_close') {
       valA = parseInt(valA) || 0;
       valB = parseInt(valB) || 0;
-    } else if (sortColumn === 'open_date_time') {
+    } else if (sortColumn === 'open_date_time' || sortColumn === 'resolved_date') {
       valA = new Date(valA || 0).getTime();
       valB = new Date(valB || 0).getTime();
     } else {
@@ -346,7 +346,8 @@ function sortAndRenderRows() {
   });
 
   tbody.innerHTML = sorted.map((r, sortedIdx) => {
-    const date = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
+    const openDate = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
+    const closedDate = r.resolved_date ? new Date(r.resolved_date).toLocaleDateString() : '—';
     const open = isRecordOpen(r);
     const statusClass = open ? 'status-open' : 'status-resolved';
     const statusText = open ? 'Open' : 'Resolved';
@@ -357,7 +358,8 @@ function sortAndRenderRows() {
       : 'N/A';
     return `<tr data-idx="${origIdx}">
       <td>${ticket}</td>
-      <td>${date}</td>
+      <td>${openDate}</td>
+      <td>${closedDate}</td>
       <td><span class="${statusClass}">${statusText}</span></td>
       <td>${escapeHtml(r.incident_address || 'N/A')}</td>
       <td>${daysOpenOrClosed(r)}</td>
