@@ -267,11 +267,15 @@ function displayResults(lat, lng, radiusFt, records) {
   // Table
   renderTable(records);
 
-  // Adjust center for table covering bottom of map
+  // Re-center adjusted for the table covering bottom of map
   requestAnimationFrame(() => {
     const panel = document.getElementById('results-panel');
-    if (!panel.classList.contains('hidden')) {
-      map.panBy([0, panel.offsetHeight / 2], { animate: false });
+    if (!panel.classList.contains('hidden') && currentLat != null && currentLng != null) {
+      const zoom = map.getZoom();
+      const targetPoint = map.project([currentLat, currentLng], zoom);
+      targetPoint.y += panel.offsetHeight / 2;
+      const adjusted = map.unproject(targetPoint, zoom);
+      map.setView(adjusted, zoom, { animate: false });
     }
   });
 }
