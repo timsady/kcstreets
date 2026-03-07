@@ -133,6 +133,7 @@ h1 { font-size: 1.5rem; margin-bottom: 2px; }
 /* Status badges */
 .status-open { color: #dc3545; font-weight: 600; }
 .status-resolved { color: #198754; font-weight: 600; }
+.status-canceled { color: #6c757d; font-weight: 600; }
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -6,8 +6,15 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function recordStatus(record) {
+  const status = record.current_status?.toLowerCase();
+  if (status === 'resolved') return 'resolved';
+  if (status === 'canceled') return 'canceled';
+  return 'open';
+}
+
 function isRecordOpen(record) {
-  return record.current_status?.toLowerCase() !== 'resolved';
+  return recordStatus(record) === 'open';
 }
 
 function formatDaysToClose(val) {
@@ -216,9 +223,9 @@ function displayResults(lat, lng, radiusFt, records) {
       markersByIndex.push(null);
       return;
     }
-    const open = isRecordOpen(r);
-    const color = open ? '#dc3545' : '#198754';
-    const statusText = open ? 'Open' : 'Resolved';
+    const status = recordStatus(r);
+    const color = status === 'open' ? '#dc3545' : status === 'canceled' ? '#6c757d' : '#198754';
+    const statusText = status === 'open' ? 'Open' : status === 'canceled' ? 'Canceled' : 'Resolved';
 
     const marker = L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], {
       radius: 7,
@@ -233,7 +240,7 @@ function displayResults(lat, lng, radiusFt, records) {
     const subType = r.issue_sub_type ? escapeHtml(r.issue_sub_type) : '';
     const extra = parseAdditionalQuestions(r.additional_questions);
 
-    const daysLabel = open ? 'Days open' : 'Days to close';
+    const daysLabel = status === 'open' ? 'Days open' : 'Days to close';
     const ticketId = r.reported_issue || 'N/A';
     const ticketLink = r.reported_issue
       ? `<a href="https://data.kcmo.org/resource/d4px-6rwg.json?reported_issue=${r.reported_issue}" target="_blank">${escapeHtml(ticketId)}</a>`
@@ -267,8 +274,9 @@ function renderSummary(records) {
   summary.classList.remove('hidden');
 
   const total = records.length;
-  const open = records.filter(r => isRecordOpen(r)).length;
-  const resolved = total - open;
+  const open = records.filter(r => recordStatus(r) === 'open').length;
+  const canceled = records.filter(r => recordStatus(r) === 'canceled').length;
+  const resolved = total - open - canceled;
 
   const dates = records
     .map(r => r.open_date_time ? new Date(r.open_date_time) : null)
@@ -298,6 +306,10 @@ function renderSummary(records) {
       <div class="stat">
         <span class="stat-value status-resolved">${resolved}</span>
         <span class="stat-label">Resolved</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value status-canceled">${canceled}</span>
+        <span class="stat-label">Canceled</span>
       </div>
       <div class="stat">
         <span class="stat-value">${avgDays}</span>
@@ -348,9 +360,9 @@ function sortAndRenderRows() {
   tbody.innerHTML = sorted.map((r, sortedIdx) => {
     const openDate = r.open_date_time ? new Date(r.open_date_time).toLocaleDateString() : 'N/A';
     const closedDate = r.resolved_date ? new Date(r.resolved_date).toLocaleDateString() : '—';
-    const open = isRecordOpen(r);
-    const statusClass = open ? 'status-open' : 'status-resolved';
-    const statusText = open ? 'Open' : 'Resolved';
+    const status = recordStatus(r);
+    const statusClass = status === 'open' ? 'status-open' : status === 'canceled' ? 'status-canceled' : 'status-resolved';
+    const statusText = status === 'open' ? 'Open' : status === 'canceled' ? 'Canceled' : 'Resolved';
     const origIdx = currentRecords.indexOf(r);
     const details = r.issue_sub_type ? escapeHtml(r.issue_sub_type) : '';
     const ticket = r.reported_issue
